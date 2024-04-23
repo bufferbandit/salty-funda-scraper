@@ -1,0 +1,3 @@
+HLISA~=1.4.1
+helium~=5.0.0
+undetected-chromedriver
