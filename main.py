@@ -108,6 +108,9 @@ def main_flow(driver, hla):
 	# Reject cookies
 	reject_cookies(hla)
 
+
+	# login
+
 	# Go to the search page
 	area = ["rotterdam"]
 	search_url = build_search_url("koop", area)

@@ -121,3 +121,4 @@ def process_search_result_item(search_result_element):
 		bedrooms,
 		energy_label
 	]
+	#TODO: Add realtor ass well
