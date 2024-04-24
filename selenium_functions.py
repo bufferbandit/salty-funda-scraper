@@ -2,12 +2,14 @@ import traceback
 from multiprocessing import Lock, Manager
 from multiprocessing.dummy import Pool
 
+import requests
 from selenium.webdriver.common.by import By
 from helium import Button, TextField
 from urllib.parse import urlencode
 from time import sleep
 
 from driver import get_remote_driver
+from utils import update_list, get_with_selenium_cookies
 
 
 def helium_hla_sendkeys(hla, helium_element, text):
@@ -92,38 +94,68 @@ def process_individual_searchresults_page(driver, url=None, shallow_scrape=False
 		card_data = process_individual_search_result_item(search_result_cards)
 		page_results.append(card_data)
 
-	if not shallow_scrape:
 
-		# Scrape an individual page And add the results to the more detailed results
+		if not shallow_scrape:
+			pool = Pool(5)
+			mp_manager = Manager()
+			lock = mp_manager.Lock()
+			# print("Created new pool of size: " + str(len(pool._pool)))
+			for x, page_result in enumerate(page_results):
+				url = page_result[3]
+				pool.apply_async(
+					func=process_listings_page,
+					args=(x, url, driver.get_cookies()),
+					callback=lambda a: update_list(page_results, a[0], page_results[a[0]] + a[1]),
+					error_callback=traceback.print_exception
+				)
 
-		executor_url = driver.command_executor._url
-		session_id = driver.session_id
+			pool.close()
+			pool.join()
+			print(page_results)
 
-		poolsize = 5
-		pool = Pool(poolsize)
-		mp_manager = Manager()
-		lock = mp_manager.Lock()
-		# print("Created new pool of size: " + str(len(pool._pool)))
+		# Otherwise visit the urls themselves
+		return page_results
 
-		for search_result_card in page_results:
-			url = search_result_card[3]
-			pool.apply_async(
-				func=process_individual_listing_page,
-				args=(url, lock, executor_url, session_id),
-				error_callback=traceback.print_exception)
-		pool.close()
-		pool.join()
+def process_listings_page(index, url, driver_cookies):
+
+	res = get_with_selenium_cookies(url, selenium_cookies=driver_cookies)
+	print(res.text)
 
 
-	# Otherwise visit the urls themselves
-	return page_results
+	return index, [url,999]
 
-
-def process_individual_listing_page(url, lock, executor_url, session_id):
-	print(url, lock, executor_url, session_id)
-	driver = get_remote_driver(executor_url, session_id)
-	print(driver)
-	driver.get("https://google.com/")
+# 	if not shallow_scrape:
+#
+# 		# Scrape an individual page And add the results to the more detailed results
+#
+# 		executor_url = driver.command_executor._url
+# 		session_id = driver.session_id
+#
+# 		poolsize = 5
+# 		pool = Pool(poolsize)
+# 		mp_manager = Manager()
+# 		lock = mp_manager.Lock()
+# 		# print("Created new pool of size: " + str(len(pool._pool)))
+#
+# 		for search_result_card in page_results:
+# 			url = search_result_card[3]
+# 			pool.apply_async(
+# 				func=process_individual_listing_page,
+# 				args=(url, lock, executor_url, session_id),
+# 				error_callback=traceback.print_exception)
+# 		pool.close()
+# 		pool.join()
+#
+#
+# 	# Otherwise visit the urls themselves
+# 	return page_results
+#
+#
+# def process_individual_listing_page(url, lock, executor_url, session_id):
+# 	print(url, lock, executor_url, session_id)
+# 	driver = get_remote_driver(executor_url, session_id)
+# 	print(driver)
+# 	driver.get("https://google.com/")
 
 def process_individual_search_result_item(search_result_element):
 	street_name_house_number = search_result_element.find_element(By.XPATH, './/h2[@data-test-id="street-name-house-number"]').text
