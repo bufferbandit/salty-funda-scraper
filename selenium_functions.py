@@ -1,8 +1,13 @@
+import traceback
+from multiprocessing import Lock, Manager
+from multiprocessing.dummy import Pool
+
 from selenium.webdriver.common.by import By
 from helium import Button, TextField
 from urllib.parse import urlencode
 from time import sleep
 
+from driver import get_remote_driver
 
 
 def helium_hla_sendkeys(hla, helium_element, text):
@@ -84,24 +89,43 @@ def process_individual_searchresults_page(driver, url=None, shallow_scrape=False
 	# card container
 	search_result_items = driver.find_elements(By.XPATH, '//div[@data-test-id="search-result-item"]')
 	for search_result_cards in search_result_items:
-		card_data = process_search_result_item(search_result_cards)
-		print(card_data)
+		card_data = process_individual_search_result_item(search_result_cards)
 		page_results.append(card_data)
 
 	if not shallow_scrape:
 
-		# Scrape an individual page
+		# Scrape an individual page And add the results to the more detailed results
 
-		# And add the results to the more detailed results
+		executor_url = driver.command_executor._url
+		session_id = driver.session_id
 
-		...
+		poolsize = 5
+		pool = Pool(poolsize)
+		mp_manager = Manager()
+		lock = mp_manager.Lock()
+		# print("Created new pool of size: " + str(len(pool._pool)))
+
+		for search_result_card in page_results:
+			url = search_result_card[3]
+			pool.apply_async(
+				func=process_individual_listing_page,
+				args=(url, lock, executor_url, session_id),
+				error_callback=traceback.print_exception)
+		pool.close()
+		pool.join()
 
 
 	# Otherwise visit the urls themselves
 	return page_results
 
 
-def process_search_result_item(search_result_element):
+def process_individual_listing_page(url, lock, executor_url, session_id):
+	print(url, lock, executor_url, session_id)
+	driver = get_remote_driver(executor_url, session_id)
+	print(driver)
+	driver.get("https://google.com/")
+
+def process_individual_search_result_item(search_result_element):
 	street_name_house_number = search_result_element.find_element(By.XPATH, './/h2[@data-test-id="street-name-house-number"]').text
 	postal_code_city = search_result_element.find_element(By.XPATH, './/div[@data-test-id="postal-code-city"]').text
 	price = search_result_element.find_element(By.XPATH, './/p[@data-test-id="price-sale"]').text
@@ -123,6 +147,14 @@ def process_search_result_item(search_result_element):
 		percel_scurface = tag_data[2].text
 		bedrooms = tag_data[3].text
 		energy_label = tag_data[4].text
+	elif len(tag_data) == 6:
+		# 0 is "blikvanger"
+		# 1 is "nieuw"
+		# 2 is "open huis"
+		home_scurface = tag_data[3].text
+		bedrooms = tag_data[4].text
+		energy_label = tag_data[5].text
+		percel_scurface = None
 	else:
 		raise Exception(f"Unexpected number of tags found: {len(tag_data)}" )
 
@@ -136,8 +168,10 @@ def process_search_result_item(search_result_element):
 		percel_scurface,
 		bedrooms,
 		energy_label
+
+		# TODO: Add realtor ass well
 	]
-	#TODO: Add realtor ass well
+
 
 
 def login(driver, hla, username, password):
