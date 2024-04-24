@@ -33,6 +33,25 @@ def reject_cookies(hla):
 			.click() \
 			.perform()
 
+def login(driver, hla, username, password):
+	login_url = "https://login.funda.nl/account/login"
+	driver.get(login_url)
+
+	username_box = TextField(below="E-mailadres")
+	password_box = TextField(below="Wachtwoord")
+
+	helium_hla_sendkeys(hla, username_box, username)
+	helium_hla_sendkeys(hla, password_box, password)
+
+	log_in_button = Button("Log in")
+	# hla\
+	# 	.reset_actions()\
+	# 	.move_to_element(log_in_button.web_element)\
+	# 	.click()
+	log_in_button.web_element.click()
+
+	pass
+
 
 def search(hla, search_text):
 	searchbox = TextField("Zoek op plaats, buurt of postcode")
@@ -103,6 +122,8 @@ def process_individual_searchresults_page(driver, url=None, shallow_scrape=False
 		pool = Pool(poolsize)
 		mp_manager = Manager()
 		lock = mp_manager.Lock()
+
+
 		# print("Created new pool of size: " + str(len(pool._pool)))
 
 		for search_result_card in page_results:
@@ -120,10 +141,22 @@ def process_individual_searchresults_page(driver, url=None, shallow_scrape=False
 
 
 def process_individual_listing_page(url, lock, executor_url, session_id):
-	print(url, lock, executor_url, session_id)
-	driver = get_remote_driver(executor_url, session_id)
-	print(driver)
-	driver.get("https://google.com/")
+	global driver_pool
+	#
+	# print(url, lock, executor_url, session_id)
+	# driver = get_remote_driver(executor_url, session_id)
+	# print(driver)
+	# driver.get("https://google.com/")
+	# driver = driver_pool.acquire()
+	# print(driver)
+	# driver_pool.release
+	with driver_pool.acquire() as driver:
+		print(driver)
+		driver.get("https://google.com/")
+
+
+# with lock
+	# replace the page_results[x] = old + new
 
 def process_individual_search_result_item(search_result_element):
 	street_name_house_number = search_result_element.find_element(By.XPATH, './/h2[@data-test-id="street-name-house-number"]').text
@@ -174,23 +207,5 @@ def process_individual_search_result_item(search_result_element):
 
 
 
-def login(driver, hla, username, password):
-	login_url = "https://login.funda.nl/account/login"
-	driver.get(login_url)
-
-	username_box = TextField(below="E-mailadres")
-	password_box = TextField(below="Wachtwoord")
-
-	helium_hla_sendkeys(hla, username_box, username)
-	helium_hla_sendkeys(hla, password_box, password)
-
-	log_in_button = Button("Log in")
-	# hla\
-	# 	.reset_actions()\
-	# 	.move_to_element(log_in_button.web_element)\
-	# 	.click()
-	log_in_button.web_element.click()
-
-	pass
 
 

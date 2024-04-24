@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 
 from helium import start_chrome, start_firefox, set_driver, click
@@ -7,13 +8,12 @@ from helium import Button, Text, TextField
 import undetected_chromedriver as uc
 from urllib.parse import urlencode
 
-from driver import create_driver
 from selenium_functions import *
 from time import sleep
 # import secrets
 # from usersecrets import USERNAME, PASSWORD
 import usersecrets
-
+from max_pool import MaxPool, SeleniumPool
 
 # auto add selenium
 
@@ -137,11 +137,12 @@ if __name__ == "__main__":
 
 	already_loged_in = os.path.exists(profile_dir)
 
-	driver = create_driver()
-	hla = HLISA_ActionChains(driver, browser_resets_cursor_location=False)
-
-	set_driver(driver)
-
-	# Browsing
-	main_flow(driver, hla)
-	pass
+	# driver = create_driver()
+	driver_pool = SeleniumPool(6) #create_driver_pool()
+	with driver_pool.acquire() as driver:
+		# driver =  #get_driver_from_pool()
+		hla = HLISA_ActionChains(driver, browser_resets_cursor_location=False)
+		set_driver(driver)
+		# Browsing
+		main_flow(driver, hla)
+		pass
