@@ -1,14 +1,13 @@
-from HLISA.hlisa_action_chains import HLISA_ActionChains
-
 from helium import start_chrome, start_firefox, set_driver, click
-import undetected_chromedriver as uc
+from HLISA.hlisa_action_chains import HLISA_ActionChains
+from selenium.webdriver.common.by import By
 from helium import Button, Text, TextField
-from time import sleep
-
+import undetected_chromedriver as uc
 from urllib.parse import urlencode
 from selenium_functions import *
+from time import sleep
+import secrets
 
-from selenium.webdriver.common.by import By
 
 
 # auto add selenium
@@ -103,7 +102,7 @@ def build_search_url(
 def main_flow(driver, hla):
 	# Go to the home
 	driver.get("https://funda.nl")
-	sleep(1)
+	# sleep(1)
 
 	# Reject cookies
 	reject_cookies(hla)
@@ -125,8 +124,10 @@ def main_flow(driver, hla):
 if __name__ == "__main__":
 	# Setup
 	driver = uc.Chrome(headless=False)
-	hla = HLISA_ActionChains(driver)
+	hla = HLISA_ActionChains(driver, browser_resets_cursor_location=False)
 	set_driver(driver)
 
+	login(driver,hla,secrets.USERNAME,secrets.PASSWORD)
+
 	# Browsing
-	main_flow(driver, hla)
+	# main_flow(driver, hla)
