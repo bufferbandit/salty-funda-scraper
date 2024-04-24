@@ -1,3 +1,5 @@
+import os
+
 from helium import start_chrome, start_firefox, set_driver, click
 from HLISA.hlisa_action_chains import HLISA_ActionChains
 from selenium.webdriver.common.by import By
@@ -6,8 +8,9 @@ import undetected_chromedriver as uc
 from urllib.parse import urlencode
 from selenium_functions import *
 from time import sleep
-import secrets
-
+# import secrets
+# from usersecrets import USERNAME, PASSWORD
+import usersecrets
 
 
 # auto add selenium
@@ -109,25 +112,36 @@ def main_flow(driver, hla):
 
 
 	# login
+	if not already_loged_in:
+		login(driver, hla, usersecrets.USERNAME, usersecrets.PASSWORD)
+
 
 	# Go to the search page
-	area = ["rotterdam"]
-	search_url = build_search_url("koop", area)
-
-	process_paginated(driver, search_url)
-
-
+	# area = ["rotterdam"]
+	# search_url = build_search_url("koop", area)
+	#
+	# process_paginated(driver, search_url)
+	#
+	#
 	pass
 	input()
 
 
 if __name__ == "__main__":
 	# Setup
-	driver = uc.Chrome(headless=False)
+
+	# Check if profile dir already existed (means alreay loged in)
+	profile_dir = "profile_dir"
+
+	already_loged_in = os.path.exists(profile_dir)
+
+	options = uc.ChromeOptions()
+	options.user_data_dir = profile_dir
+
+	driver = uc.Chrome(headless=False, options=options) # version_main= )
 	hla = HLISA_ActionChains(driver, browser_resets_cursor_location=False)
 	set_driver(driver)
 
-	login(driver,hla,secrets.USERNAME,secrets.PASSWORD)
-
 	# Browsing
-	# main_flow(driver, hla)
+	main_flow(driver, hla)
+	pass

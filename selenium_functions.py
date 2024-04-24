@@ -151,9 +151,12 @@ def login(driver, hla, username, password):
 	helium_hla_sendkeys(hla, password_box, password)
 
 	log_in_button = Button("Log in")
-	hla\
-		.reset_actions()\
-		.move_to_element(log_in_button.web_element)\
-		.click()
+	# hla\
+	# 	.reset_actions()\
+	# 	.move_to_element(log_in_button.web_element)\
+	# 	.click()
+	log_in_button.web_element.click()
+
+	pass
 
 
