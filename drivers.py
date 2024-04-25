@@ -10,13 +10,17 @@ def create_driver():
 
 
 def get_remote_driver(executor_url, session_id):
-	chrome_options = config.generate_chrome_options()
-	driver = webdriver.Remote(
-		command_executor=executor_url,
-		options=chrome_options
-	)
-	driver.session_id = session_id
-	return driver
+	try:
+		chrome_options = config.generate_chrome_options()
+		driver = webdriver.Remote(
+			command_executor=executor_url,
+			options=chrome_options
+		)
+		driver.session_id = session_id
+	finally:
+		driver.quit()
+		return driver
+
 
 
 hla = None

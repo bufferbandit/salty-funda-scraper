@@ -2,3 +2,5 @@ helium==5.0.0
 HLISA==1.4.1
 selenium==4.19.0
 requests
+multiprocess
+mpire
