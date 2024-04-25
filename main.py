@@ -1,14 +1,16 @@
+import csv
 from pprint import pprint
 
 from helium import start_chrome, start_firefox, set_driver, click
 from HLISA.hlisa_action_chains import HLISA_ActionChains
 
-from funda_requests import req_and_parse_searchpage
+from funda_requests import req_and_parse_searchpage, req_and_parse_pages
 from selenium_functions import *
 from drivers import create_driver
 import usersecrets
 import drivers
 from utils import build_search_url, flatten_ndlist
+from datetime import datetime
 
 
 # auto add selenium
@@ -28,25 +30,21 @@ def main_flow(selenium_driver, hla):
 	area = ["rotterdam"]
 	search_url = build_search_url("koop", area)
 
-	all_searchpages_results = []
-	serachpages_results = req_and_parse_searchpage(search_url,3)
-	for searchpage_result in serachpages_results:
-		searchpage_results = list(searchpage_result)
-		all_searchpages_results.append(searchpage_results)
+	search_results = req_and_parse_searchpage(search_url)
+	# pprint(search_results)
 
-	# For some super strange reason no matter what I try the
-	# list of the paginated searchresults keeps being n-dimensional.
-	# My intention was to create a generator that gives individual search
-	# results, but when trying to use yield from on a list of dicts
-	# seems to be giving the keys only, so next best plan is this
-	# dumb yet simple solution and just flatten the array after the fact.
-	# Appart from the fact that this is not really a good solution because
-	# it does not address the rootcause, it might also become problematic
-	# in practice when the list becomes really big.
-	pprint(flatten_ndlist(all_searchpages_results))
+	pages_data = req_and_parse_pages([sr["url"] for sr in search_results])
 
-	pass
-	input("Press any key to exit...")
+	pprint(pages_data)
+
+
+
+	with open("funda_data-" + datetime.now().strftime("%d-%m-%Y-%H-%M-%S") + ".csv", mode="w", newline="") as file:
+		fieldnames = pages_data[0].keys()
+		writer = csv.DictWriter(file, fieldnames=fieldnames)
+		writer.writeheader()
+		writer.writerows(pages_data)
+
 
 
 if __name__ == "__main__":

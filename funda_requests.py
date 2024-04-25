@@ -1,22 +1,55 @@
-import traceback
-from multiprocessing import Pool
-from pprint import pprint
+
+
+from funda_parse import parse_searchresults_page, parse_max_number_of_pages, parse_individual_page
+from utils import sel_session_request, flatten_ndlist
 from urllib.parse import urlencode
-
 from mpire import WorkerPool
-
-from funda_parse import parse_searchresults_page, parse_max_number_of_pages
-from utils import sel_session_request
 import drivers
 
 
-# def threaded_req_and_parse_searchpage(*args):
-# 	print(args)
-# 	# return list(req_and_parse_searchpage(url, in_recursion=True, _selenium_cookies=_selenium_cookies, _selenium_useragent=_selenium_useragent))
+
+def req_and_parse_pages(page_urls):
+	pool = WorkerPool(5, use_dill=True)
+	results = pool.map(
+		func=lambda url, selenium_cookies, selenium_useragent: list(
+			req_and_parse_individual_page(
+				url,
+				_selenium_cookies=selenium_cookies,
+				_selenium_useragent=selenium_useragent,
+			)
+		),
+		iterable_of_args=[(url, drivers.selenium_cookies, drivers.selenium_useragent) for url in page_urls],
+		progress_bar=True,
+		progress_bar_style="rich",
+	)
+	return results
+
+def req_and_parse_individual_page(page_url, _selenium_cookies=None, _selenium_useragent=None):
+	res = sel_session_request("get", page_url, _selenium_cookies, _selenium_useragent)
+	return parse_individual_page(res.text)
+
+
+def req_and_parse_searchpage(search_url, max_page=None):
+	all_searchpages_results = []
+	serachpages_results = _req_and_parse_searchpage(search_url, max_page)
+	for searchpage_result in serachpages_results:
+		searchpage_results = list(searchpage_result)
+		all_searchpages_results.append(searchpage_results)
+
+	# For some super strange reason no matter what I try the
+	# list of the paginated searchresults keeps being n-dimensional.
+	# My intention was to create a generator that gives individual search
+	# results, but when trying to use yield from on a list of dicts
+	# seems to be giving the keys only, so next best plan is this
+	# dumb yet simple solution and just flatten the array after the fact.
+	# Appart from the fact that this is not really a good solution because
+	# it does not address the rootcause, it might also become problematic
+	# in practice when the list becomes really big.
+	return flatten_ndlist(all_searchpages_results)
 
 
 
-def req_and_parse_searchpage(search_url, max_page=None, in_recursion=False, _selenium_cookies=None, _selenium_useragent=None):
+def _req_and_parse_searchpage(search_url, max_page=None, in_recursion=False, _selenium_cookies=None, _selenium_useragent=None):
 
 	# Default options are added for when in threaded mode, the thread cannot get variables from the module
 	selenium_cookies = _selenium_cookies or drivers.selenium_cookies
@@ -38,7 +71,7 @@ def req_and_parse_searchpage(search_url, max_page=None, in_recursion=False, _sel
 		pool = WorkerPool(5, use_dill=True)
 		results = pool.map(
 			func=lambda url, selenium_cookies, selenium_useragent: list(
-				req_and_parse_searchpage(
+				_req_and_parse_searchpage(
 					url,
 					in_recursion=True,
 					_selenium_cookies=selenium_cookies,
