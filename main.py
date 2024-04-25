@@ -1,18 +1,13 @@
-import os
+from pprint import pprint
 
 from helium import start_chrome, start_firefox, set_driver, click
 from HLISA.hlisa_action_chains import HLISA_ActionChains
-from selenium.webdriver.common.by import By
-from helium import Button, Text, TextField
-import undetected_chromedriver as uc
-from urllib.parse import urlencode
 
-from driver import create_driver
+from funda_requests import req_and_parse_searchpage
 from selenium_functions import *
-from time import sleep
-# import secrets
-# from usersecrets import USERNAME, PASSWORD
+from drivers import create_driver
 import usersecrets
+import drivers
 
 
 # auto add selenium
@@ -104,44 +99,30 @@ def build_search_url(
 
 
 
-def main_flow(driver, hla):
-	# Go to the home
-	driver.get("https://funda.nl")
-	# sleep(1)
+def main_flow(selenium_driver, hla):
 
-	# Reject cookies
-	reject_cookies(hla)
-
-
-	# login
-	if not already_loged_in:
-		login(driver, hla, usersecrets.USERNAME, usersecrets.PASSWORD)
-
+	drivers.selenium_cookies = login_if_required(selenium_driver, hla, usersecrets.USERNAME, usersecrets.PASSWORD)
+	drivers.selenium_useragent = selenium_driver.execute_script("return navigator.userAgent")
 
 	# Go to the search page
 	area = ["rotterdam"]
 	search_url = build_search_url("koop", area)
 
-	process_paginated(driver, search_url)
-
+	serachpages_results = req_and_parse_searchpage(search_url,2)
+	for searchpage_result in serachpages_results:
+		searchpage_results = list(searchpage_result)
+		pprint(searchpage_results)
 
 	pass
-	input()
+	input("Press any key to exit...")
 
 
 if __name__ == "__main__":
-	# Setup
 
-	# Check if profile dir already existed (means alreay loged in)
-	profile_dir = "profile_dir"
-
-	already_loged_in = os.path.exists(profile_dir)
-
-	driver = create_driver()
-	hla = HLISA_ActionChains(driver, browser_resets_cursor_location=False)
-
-	set_driver(driver)
+	drivers.driver = create_driver()
+	drivers.hla = HLISA_ActionChains(drivers.driver, browser_resets_cursor_location=False)
+	set_driver(drivers.driver)
 
 	# Browsing
-	main_flow(driver, hla)
+	main_flow(drivers.driver, drivers.hla)
 	pass

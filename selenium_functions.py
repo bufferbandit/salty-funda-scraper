@@ -8,8 +8,10 @@ from helium import Button, TextField
 from urllib.parse import urlencode
 from time import sleep
 
-from driver import get_remote_driver
-from utils import update_list, get_with_selenium_cookies
+from drivers import get_remote_driver
+from utils import update_list, sel_session_request
+# from driver import *
+import drivers
 
 
 def helium_hla_sendkeys(hla, helium_element, text):
@@ -26,14 +28,44 @@ def hla_sendkeys(hla, selenium_element, text):
 		.perform()
 
 
-def reject_cookies(hla):
+def hla_reject_cookies(hla):
 	if (alles_weigeren := Button("Alles weigeren")).exists():
-		sleep(1)
+		# sleep(1)
 		hla \
 			.reset_actions() \
 			.move_to_element(alles_weigeren.web_element) \
 			.click() \
 			.perform()
+
+def login_if_required(driver, hla, username, password):
+	if not check_if_logged_in(driver, hla):
+		login(driver, hla, username, password)
+	return driver.get_cookies()
+
+def check_if_logged_in(driver, hla):
+	driver.get("https://funda.nl/")
+	hla_reject_cookies(hla)
+	return not Button("Inloggen").exists()
+
+
+def login(driver, hla, username, password):
+	driver.get("https://login.funda.nl/account/login")
+	hla_reject_cookies(hla)
+
+
+	username_box = TextField(below="E-mailadres")
+	password_box = TextField(below="Wachtwoord")
+
+	helium_hla_sendkeys(hla, username_box, username)
+	helium_hla_sendkeys(hla, password_box, password)
+
+	log_in_button = Button("Log in")
+	# hla\
+	# 	.reset_actions()\
+	# 	.move_to_element(log_in_button.web_element)\
+	# 	.click()
+	log_in_button.web_element.click()
+	return driver.get_cookies()
 
 
 def search(hla, search_text):
@@ -58,140 +90,122 @@ def get_max_items(driver):
 	max_item = int(results_items[-2])
 	return max_item
 
-def process_all_process_searchresults_pages(driver, base_url, max_pages, start=2):
-	for x in range(start, max_pages+1):
-		paginated_url = base_url + "&" + urlencode({"search_result": x})
-		yield process_individual_searchresults_page(driver, paginated_url)
+# def process_all_process_searchresults_pages(driver, base_url, max_pages, start=2):
+# 	for x in range(start, max_pages+1):
+# 		paginated_url = base_url + "&" + urlencode({"search_result": x})
+# 		yield process_individual_searchresults_page(driver, paginated_url)
 
 
 
-def process_paginated(driver, original_url):
+# def process_paginated(original_url):
 	# Visit the search url
-	driver.get(original_url)
+	# res = sel_session_request("get", original_url, driver.selenium_cookies, driver.selenium_useragent)
 
 	# Process the first page
-	first_page_results = process_individual_searchresults_page(driver, original_url)
-	# Get the max number of pages
-	max_items = get_max_items(driver)
-
-	# And now we know how many pages are left we can request the rest of them,
-	# without rerequesting the first one which would be wasteful
-	other_pages_results = list(process_all_process_searchresults_pages(driver, original_url, max_items, 2))
-
-
-	return first_page_results + other_pages_results
-
-def process_individual_searchresults_page(driver, url=None, shallow_scrape=False):
-
-	page_results = []
-
-	if url:driver.get(url)
-
-	# If shallow scrape only scrape the info that is on the cards
-	# card container
-	search_result_items = driver.find_elements(By.XPATH, '//div[@data-test-id="search-result-item"]')
-	for search_result_cards in search_result_items:
-		card_data = process_individual_search_result_item(search_result_cards)
-		page_results.append(card_data)
-
-
-		if not shallow_scrape:
-			pool = Pool(5)
-			mp_manager = Manager()
-			lock = mp_manager.Lock()
-			# print("Created new pool of size: " + str(len(pool._pool)))
-			for x, page_result in enumerate(page_results):
-				url = page_result[3]
-				pool.apply_async(
-					func=process_listings_page,
-					args=(x, url, driver.get_cookies(), driver.execute_script("return navigator.userAgent")),
-					callback=lambda a: update_list(page_results, a[0], page_results[a[0]] + a[1]),
-					error_callback=traceback.print_exception
-				)
-
-			pool.close()
-			pool.join()
-			print(page_results)
-
-		# Otherwise visit the urls themselves
-		return page_results
-
-def process_listings_page(index, url, driver_cookies, driver_useragent):
-
-	res = get_with_selenium_cookies(url, selenium_cookies=driver_cookies, headers={"User-Agent":driver_useragent})
-	print(res.text)
-
-	# TODO: Parse
-
-
-	return index, [url,999]
-
-def process_individual_search_result_item(search_result_element):
-	street_name_house_number = search_result_element.find_element(By.XPATH, './/h2[@data-test-id="street-name-house-number"]').text
-	postal_code_city = search_result_element.find_element(By.XPATH, './/div[@data-test-id="postal-code-city"]').text
-	price = search_result_element.find_element(By.XPATH, './/p[@data-test-id="price-sale"]').text
-	url = search_result_element.find_element(By.XPATH, './/a[@data-test-id="object-image-link"]').get_attribute("href")
-
-	tag_data = search_result_element.find_elements(By.TAG_NAME, "li")
-	if len(tag_data) == 3:
-		home_scurface = tag_data[0].text
-		percel_scurface = None
-		bedrooms = tag_data[1].text
-		energy_label = tag_data[2].text
-	elif len(tag_data) == 4:
-		home_scurface = tag_data[1].text
-		percel_scurface = None
-		bedrooms = tag_data[2].text
-		energy_label = tag_data[3].text
-	elif len(tag_data) == 5:
-		home_scurface = tag_data[1].text
-		percel_scurface = tag_data[2].text
-		bedrooms = tag_data[3].text
-		energy_label = tag_data[4].text
-	elif len(tag_data) == 6:
-		# 0 is "blikvanger"
-		# 1 is "nieuw"
-		# 2 is "open huis"
-		home_scurface = tag_data[3].text
-		bedrooms = tag_data[4].text
-		energy_label = tag_data[5].text
-		percel_scurface = None
-	else:
-		raise Exception(f"Unexpected number of tags found: {len(tag_data)}" )
-
-
-	return [
-		street_name_house_number,
-		postal_code_city,
-		price,
-		url,
-		home_scurface,
-		percel_scurface,
-		bedrooms,
-		energy_label
-
-		# TODO: Add realtor ass well
-	]
-
-
-
-def login(driver, hla, username, password):
-	login_url = "https://login.funda.nl/account/login"
-	driver.get(login_url)
-
-	username_box = TextField(below="E-mailadres")
-	password_box = TextField(below="Wachtwoord")
-
-	helium_hla_sendkeys(hla, username_box, username)
-	helium_hla_sendkeys(hla, password_box, password)
-
-	log_in_button = Button("Log in")
-	# hla\
-	# 	.reset_actions()\
-	# 	.move_to_element(log_in_button.web_element)\
-	# 	.click()
-	log_in_button.web_element.click()
-
-	pass
-
-
+	# first_page_results = process_individual_searchresults_page(res.text, original_url)
+	# # Get the max number of pages
+	# max_items = get_max_items(driver)
+	#
+	# # And now we know how many pages are left we can request the rest of them,
+	# # without rerequesting the first one which would be wasteful
+	# other_pages_results = list(process_all_process_searchresults_pages(driver, original_url, max_items, 2))
+	#
+	#
+	# return first_page_results + other_pages_results
+#
+# def process_individual_searchresults_page(body, url=None, shallow_scrape=False):
+# 	page_results = []
+#
+# 	if url:driver.get(url)
+#
+# 	# If shallow scrape only scrape the info that is on the cards
+# 	# card container
+# 	search_result_items = driver.find_elements(By.XPATH, '//div[@data-test-id="search-result-item"]')
+# 	for search_result_cards in search_result_items:
+# 		card_data = process_individual_search_result_item(search_result_cards)
+# 		page_results.append(card_data)
+#
+#
+# 		if not shallow_scrape:
+# 			pool = Pool(5)
+# 			mp_manager = Manager()
+# 			lock = mp_manager.Lock()
+# 			# print("Created new pool of size: " + str(len(pool._pool)))
+# 			for x, page_result in enumerate(page_results):
+# 				url = page_result["url"]
+# 				pool.apply_async(
+# 					func=process_listings_page,
+# 					args=(x, url, driver.selenium_cookies, driver.selenium_useragent),
+# 					callback=lambda a: update_list(page_results, a[0], page_results[a[0]] | a[1]),
+# 					error_callback=traceback.print_exception
+# 				)
+#
+# 			pool.close()
+# 			pool.join()
+# 			print(page_results)
+#
+# 		# Otherwise visit the urls themselves
+# 		return page_results
+#
+# def process_listings_page(index, url, driver_cookies, driver_useragent):
+#
+# 	res = sel_session_request(url, selenium_cookies=driver_cookies, headers={"User-Agent":driver_useragent})
+# 	print(res.text)
+#
+# 	# TODO: Parse
+#
+#
+# 	return index, {}
+#
+# def process_individual_search_result_item(search_result_element):
+# 	street_name_house_number = search_result_element.find_element(By.XPATH, './/h2[@data-test-id="street-name-house-number"]').text
+# 	postal_code_city = search_result_element.find_element(By.XPATH, './/div[@data-test-id="postal-code-city"]').text
+# 	price = search_result_element.find_element(By.XPATH, './/p[@data-test-id="price-sale"]').text
+# 	url = search_result_element.find_element(By.XPATH, './/a[@data-test-id="object-image-link"]').get_attribute("href")
+#
+# 	tag_data = search_result_element.find_elements(By.TAG_NAME, "li")
+# 	if len(tag_data) == 3:
+# 		home_scurface = tag_data[0].text
+# 		percel_scurface = None
+# 		bedrooms = tag_data[1].text
+# 		energy_label = tag_data[2].text
+# 	elif len(tag_data) == 4:
+# 		home_scurface = tag_data[1].text
+# 		percel_scurface = None
+# 		bedrooms = tag_data[2].text
+# 		energy_label = tag_data[3].text
+# 	elif len(tag_data) == 5:
+# 		home_scurface = tag_data[1].text
+# 		percel_scurface = tag_data[2].text
+# 		bedrooms = tag_data[3].text
+# 		energy_label = tag_data[4].text
+# 	elif len(tag_data) == 6:
+# 		# 0 is "blikvanger"
+# 		# 1 is "nieuw"
+# 		# 2 is "open huis"
+# 		home_scurface = tag_data[3].text
+# 		bedrooms = tag_data[4].text
+# 		energy_label = tag_data[5].text
+# 		percel_scurface = None
+# 	else:
+# 		raise Exception(f"Unexpected number of tags found: {len(tag_data)}" )
+#
+#
+# 	return {
+# 		"street_name_house_number":street_name_house_number,
+# 		"postal_code_city":postal_code_city,
+# 		"price":price,
+# 		"url":url,
+# 		"home_scurface":home_scurface,
+# 		"percel_scurface":percel_scurface,
+# 		"bedrooms":bedrooms,
+# 		"energy_label":energy_label
+#
+# 		# TODO: Add realtor ass well
+# 	}
+#
+#
+#
+#
+#
+#
