@@ -102,7 +102,9 @@ def parse_individual_page(body):
 		features_dict[key] = value
 
 	## Realtor data
-	realtor_data = soup.find_all("app-contact-broker-modal")[0].attrs
+	# TODO: Realtor is broken for now. Sometimes it works, sometimes it doesn't. Reenable in the future
+	# realtor_data = soup.find_all("app-contact-broker-modal")[0].attrs
+	realtor_data = {}
 
 	## Price
 	price_raw_object = soup.find(class_="object-header__price").text.strip()
@@ -139,3 +141,4 @@ def parse_individual_page(body):
 		"postal_code": postal_code,
 		"place": place
 	}
+	return page_data

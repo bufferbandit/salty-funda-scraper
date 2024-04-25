@@ -11,12 +11,11 @@ import drivers
 def req_and_parse_pages(page_urls):
 	pool = WorkerPool(5, use_dill=True)
 	results = pool.map(
-		func=lambda url, selenium_cookies, selenium_useragent: list(
+		func=lambda url, selenium_cookies, selenium_useragent:
 			req_and_parse_individual_page(
 				url,
 				_selenium_cookies=selenium_cookies,
 				_selenium_useragent=selenium_useragent,
-			)
 		),
 		iterable_of_args=[(url, drivers.selenium_cookies, drivers.selenium_useragent) for url in page_urls],
 		progress_bar=True,
