@@ -9,7 +9,7 @@ from selenium_functions import *
 from drivers import create_driver
 import usersecrets
 import drivers
-from utils import build_search_url, flatten_ndlist
+from utils import build_search_url, flatten_ndlist, convert_beta_url_to_old_url
 from datetime import datetime
 
 
@@ -33,7 +33,7 @@ def main_flow(selenium_driver, hla):
 	search_results = req_and_parse_searchpage(search_url)
 	# pprint(search_results)
 
-	pages_data = req_and_parse_pages([sr["url"] for sr in search_results])
+	pages_data = req_and_parse_pages([convert_beta_url_to_old_url(sr["url"]) for sr in search_results])
 
 	pprint(pages_data)
 

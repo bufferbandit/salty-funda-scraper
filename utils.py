@@ -121,6 +121,16 @@ def build_search_url(
 
 
 def flatten_ndlist(arg):
-    if not isinstance(arg, list): # if not list
-        return [arg]
-    return [x for sub in arg for x in flatten_ndlist(sub)]
+	if not isinstance(arg, list): # if not list
+		return [arg]
+	return [x for sub in arg for x in flatten_ndlist(sub)]
+
+
+def convert_beta_url_to_old_url(url):
+	url = url.replace("/detail", "")
+	id = url.split("/")[-2]
+	url = url.replace(id + "/", "")
+	dashed_parts = url.split("-")
+	dashed_parts.insert(1, id)
+	new_url = "-".join(dashed_parts)
+	return new_url
