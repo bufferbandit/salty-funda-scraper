@@ -1,4 +1,5 @@
 import inspect
+import traceback
 from urllib.parse import urlencode
 
 import requests
@@ -131,7 +132,8 @@ def convert_beta_url_to_old_url(url):
 		dashed_parts.insert(1, id)
 		new_url = "-".join(dashed_parts)
 		return new_url
-	except:
+	except Exception as e:
+		# traceback.print_exception(e)
 		return None
 
 

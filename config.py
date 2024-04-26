@@ -10,9 +10,11 @@ def generate_chrome_options():
 	return chrome_options
 
 
-NJOBS = 5
-MAX_ACTIVE_TASKS = 5
 
-npages = 5
+
+npages = 1
 search_url = build_search_url("koop", selected_area=["rotterdam"])
 
+
+NJOBS = 5
+MAX_ACTIVE_TASKS = 5

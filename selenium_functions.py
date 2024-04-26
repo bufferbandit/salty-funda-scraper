@@ -43,6 +43,8 @@ def login_if_required(driver, hla, username, password):
 	return driver.get_cookies()
 
 def check_if_logged_in(driver, hla):
+	# NOTE: Could also be checked with an api request to endpoint:
+	#	https://www.funda.nl/mijn/account/isuserloggedin/
 	driver.get("https://funda.nl/")
 	hla_reject_cookies(hla)
 	return not Button("Inloggen").exists()

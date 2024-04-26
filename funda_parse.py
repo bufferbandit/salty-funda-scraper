@@ -1,10 +1,12 @@
 import json
+import traceback
 from xml import etree
 
+import requests
 from bs4 import BeautifulSoup
 from lxml import html, etree
 
-from utils import convert_beta_url_to_old_url
+from utils import convert_beta_url_to_old_url, sel_session_request
 
 
 def parse_max_number_of_pages(body):
@@ -91,9 +93,15 @@ def parse_individual_searchresult_card(body):
 # TODO: We want to include the url in the object as well,
 # but instead of passing it awkwardly through this parameter
 # I am sure it is somewhere in the body as well and can be extracted
+# also the cookies and useragent don't really belong here but done
+# for reasons in a t\odo speicfied bellow
 def parse_individual_page(body, url=None):
 	tree = html.fromstring(body)
 	soup = BeautifulSoup(body, "lxml")
+
+	# Get the global funda id
+	global_funda_id = tree.xpath('//@data-global-id')[0]
+	published_date = tree.xpath('//@published-date')[0]
 
 	## Get location data
 	try:
@@ -119,6 +127,10 @@ def parse_individual_page(body, url=None):
 
 	## Realtor data
 	try:
+		# TODO: Also get the realtor id
+		#			 ...
+		#            'makelaarVestigingnummer' : '62887',
+		#            'makelaarsvereniging' : 'Vbo',
 		realtor_data = soup.find_all("app-contact-broker-modal")[0].attrs
 	except:
 		realtor_data = {}
@@ -139,13 +151,31 @@ def parse_individual_page(body, url=None):
 	postal_code = " ".join(postal_code_full.split()[:2])
 	place = " ".join(postal_code_full.split()[2:])
 
-	# TODO: Liked, viewed and since
+	# TODO: Neighbourgoodinfo
+	# https://marketinsights.funda.io/v2/LocalInsights/preview/{city}/{neighbourhood_name}
+
+	# TODO: Maybe think a bit better about where to do the fetching.
+	#  This kinda is a parsing-only thing here and it's not architectually sound
+	try:
+		object_statistics_url = "https://marketinsights.funda.io/v1/objectinsights/" + global_funda_id
+		# res = sel_session_request("get", object_statistics_url, _selenium_cookies, _selenium_useragent)
+		res = requests.get(object_statistics_url)
+		if res.status_code == 204:
+			object_statistics = {}
+		else:
+			object_statistics = res.json()
+	except Exception as e:
+		# traceback.print_exception(e)
+		object_statistics = {}
+
 
 	page_data = {
+		"global_funda_id": global_funda_id,
 		"lat": lat,
 		"lng": lng,
 		**features_dict,
 		**{f"realtorinfo__{k}": v for k, v in realtor_data.items()},
+		**{f"objectstatistics__{k}": v for k, v in object_statistics.items()},
 		**{k + "__nom2": v.replace("m²", "").strip()
 		   for k, v in features_dict.items() if v and "m²" in v},
 		"price_raw_object": price_raw_object,
@@ -161,5 +191,6 @@ def parse_individual_page(body, url=None):
 		"place": place,
 		"url": url,
 		"old_url": convert_beta_url_to_old_url(url),
+		"published_date": published_date
 	}
 	return page_data
