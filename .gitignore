@@ -161,3 +161,4 @@ cython_debug/
 
 usersecrets.py
 /profile_dir/
+/out/
