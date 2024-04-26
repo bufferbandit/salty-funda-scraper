@@ -35,7 +35,7 @@ def req_and_parse_pages(page_urls):
 
 def req_and_parse_individual_page(page_url, _selenium_cookies=None, _selenium_useragent=None):
 	res = sel_session_request("get", page_url, _selenium_cookies, _selenium_useragent)
-	return parse_individual_page(res.text)
+	return parse_individual_page(res.text, page_url)
 
 
 def req_and_parse_searchpage(search_url, max_page=None):

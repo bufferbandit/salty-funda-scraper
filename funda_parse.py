@@ -4,6 +4,8 @@ from xml import etree
 from bs4 import BeautifulSoup
 from lxml import html, etree
 
+from utils import convert_beta_url_to_old_url
+
 
 def parse_max_number_of_pages(body):
 	soup = BeautifulSoup(body, "lxml")
@@ -31,7 +33,10 @@ def parse_individual_searchresult_card(body):
 
 	street_name_house_number = tree.xpath('.//h2[@data-test-id="street-name-house-number"]')[0].text.strip()
 	postal_code_city = tree.xpath('.//div[@data-test-id="postal-code-city"]')[0].text.strip()
-	price = int(tree.xpath('.//p[@data-test-id="price-sale"]')[0].text.strip().replace(".",""))
+	price_raw_object = tree.xpath('.//p[@data-test-id="price-sale"]')[0].text.strip().replace(".","")
+	price_valuta, price, price_type = price_raw_object.split(" ")
+	price = int(price.replace(".", ""))
+
 	url = tree.xpath('.//a[@data-test-id="object-image-link"]')[0].attrib["href"].strip()
 
 	tags = soup.findAll("li")
@@ -69,16 +74,24 @@ def parse_individual_searchresult_card(body):
 	return {
 		"street_name_house_number": street_name_house_number,
 		"postal_code_city": postal_code_city,
-		"price": price,
 		"url": url,
+		"old_url": convert_beta_url_to_old_url(url),
 		"home_scurface": home_scurface,
 		"percel_scurface": percel_scurface,
 		"bedrooms": bedrooms,
-		"energy_label": energy_label
+		"energy_label": energy_label,
+		"price_raw_object": price_raw_object,
+		"price_valuta": price_valuta,
+		"price": price,
+		"price_type": price_type
+
 	}
 
 
-def parse_individual_page(body):
+# TODO: We want to include the url in the object as well,
+# but instead of passing it awkwardly through this parameter
+# I am sure it is somewhere in the body as well and can be extracted
+def parse_individual_page(body, url=None):
 	tree = html.fromstring(body)
 	soup = BeautifulSoup(body, "lxml")
 
@@ -144,6 +157,8 @@ def parse_individual_page(body):
 		"postal_code_full": postal_code_full,
 		"neighbourhood": neighbourhood,
 		"postal_code": postal_code,
-		"place": place
+		"place": place,
+		"url": url,
+		"old_url": convert_beta_url_to_old_url(url),
 	}
 	return page_data

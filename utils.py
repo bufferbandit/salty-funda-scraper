@@ -125,13 +125,16 @@ def flatten_ndlist(arg):
 
 
 def convert_beta_url_to_old_url(url):
-	url = url.replace("/detail", "")
-	id = url.split("/")[-2]
-	url = url.replace(id + "/", "")
-	dashed_parts = url.split("-")
-	dashed_parts.insert(1, id)
-	new_url = "-".join(dashed_parts)
-	return new_url
+	try:
+		url = url.replace("/detail", "")
+		id = url.split("/")[-2]
+		url = url.replace(id + "/", "")
+		dashed_parts = url.split("-")
+		dashed_parts.insert(1, id)
+		new_url = "-".join(dashed_parts)
+		return new_url
+	except:
+		return None
 
 
 def standardize_dicts(list_of_dicts):
