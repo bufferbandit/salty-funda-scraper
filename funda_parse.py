@@ -31,7 +31,7 @@ def parse_individual_searchresult_card(body):
 
 	street_name_house_number = tree.xpath('.//h2[@data-test-id="street-name-house-number"]')[0].text.strip()
 	postal_code_city = tree.xpath('.//div[@data-test-id="postal-code-city"]')[0].text.strip()
-	price = tree.xpath('.//p[@data-test-id="price-sale"]')[0].text.strip()
+	price = int(tree.xpath('.//p[@data-test-id="price-sale"]')[0].text.strip().replace(".",""))
 	url = tree.xpath('.//a[@data-test-id="object-image-link"]')[0].attrib["href"].strip()
 
 	tags = soup.findAll("li")
@@ -112,6 +112,7 @@ def parse_individual_page(body):
 	## Price
 	price_raw_object = soup.find(class_="object-header__price").text.strip()
 	price_valuta, price, price_type = price_raw_object.split(" ")
+	price = int(price.replace(".",""))
 
 	## Title
 	title = soup.find(class_="object-header__title").text.strip()
@@ -136,6 +137,7 @@ def parse_individual_page(body):
 		"price_raw_object": price_raw_object,
 		"price_valuta": price_valuta,
 		"price": price,
+		"prijs": price, # bilingual shit
 		"price_type": price_type,
 		"title": title,
 		# "address_raw":address_raw,
