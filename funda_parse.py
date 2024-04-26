@@ -123,9 +123,12 @@ def parse_individual_page(body, url=None):
 
 	features_dict = {}
 
-	# TODO: The root cause of the bug is that
 	listing_features_dt_tags = listing_features_object.find_all("dt")
 	listing_features_dd_tags = listing_features_object.find_all("dd")
+	# some dd tags are just parent tags and contain nested dt and dd tags and
+	# dont have a accompanying dt tag, and thus the tags get out of sync.
+	# To prevent this, only include tags that have sub-tags
+	parent_filtered_listing_features_dd_tags = [dd_tag for dd_tag in listing_features_dd_tags if not (dd_tag.find_all("dt") + dd_tag.find_all("dd"))]
 
 	# TODO: There is a bug that listing_features_dt_tags and listing_features_dd_tags
 	# are not as long and are out of balance. A new mechanism has to be found to prevent this
@@ -136,7 +139,7 @@ def parse_individual_page(body, url=None):
 	#	Externe bergruimte
 	# in it nested
 
-	for dt_tag, dd_tag in zip(listing_features_dt_tags, listing_features_dd_tags):
+	for dt_tag, dd_tag in zip(listing_features_dt_tags, parent_filtered_listing_features_dd_tags):
 		key = dt_tag.get_text(strip=True)
 		first_span = dd_tag.get_text(strip=True)
 		# value = first_span.get_text(strip=True) if first_span else None
