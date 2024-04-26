@@ -123,6 +123,9 @@ def parse_individual_page(body, url=None):
 
 	features_dict = {}
 
+	# TODO: There is a bug here that some of the items do not get matched
+	# correctly and some values that belong to some items are placed at
+	# a next item
 	listing_features_dt_tags = listing_features_object.find_all("dt")
 	listing_features_dd_tags = listing_features_object.find_all("dd")
 
