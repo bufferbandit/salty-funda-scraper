@@ -9,7 +9,10 @@ from datetime import datetime
 from pprint import pprint
 import usersecrets
 import drivers
+import config
 import csv
+import os
+
 
 
 
@@ -28,16 +31,13 @@ def main_flow(selenium_driver, hla):
 	selenium_driver.quit()
 
 	# Go to the search page
-	npages = 1
-	area = ["rotterdam"]
-	search_url = build_search_url("koop", area)
 
-	search_results = req_and_parse_searchpage(search_url, npages)
+
+	search_results = req_and_parse_searchpage(config.search_url, config.npages)
 	pages_data = req_and_parse_pages([convert_beta_url_to_old_url(sr["url"]) for sr in search_results])
 
-
-
-	with open("funda_data-" + datetime.now().strftime("%d-%m-%Y-%H-%M-%S") + ".csv", mode="w", newline="") as file:
+	os.makedirs("out", exist_ok=True)
+	with open("out/funda_data-" + datetime.now().strftime("%d-%m-%Y-%H-%M-%S") + ".csv", mode="w", newline="") as file:
 		fieldnames = pages_data[0].keys()
 		writer = csv.DictWriter(file, fieldnames=fieldnames)
 		writer.writeheader()
