@@ -30,12 +30,12 @@ def main_flow(selenium_driver, hla):
 	area = ["rotterdam"]
 	search_url = build_search_url("koop", area)
 
-	search_results = req_and_parse_searchpage(search_url)
+	search_results = req_and_parse_searchpage(search_url, 1)
 	# pprint(search_results)
 
 	pages_data = req_and_parse_pages([convert_beta_url_to_old_url(sr["url"]) for sr in search_results])
 
-	pprint(pages_data)
+	# pprint(pages_data)
 
 
 

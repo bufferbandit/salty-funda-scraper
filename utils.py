@@ -134,3 +134,13 @@ def convert_beta_url_to_old_url(url):
 	dashed_parts.insert(1, id)
 	new_url = "-".join(dashed_parts)
 	return new_url
+
+
+def standardize_dicts(list_of_dicts):
+	# Step 1: Find all unique keys
+	all_keys = set().union(*(d.keys() for d in list_of_dicts))
+	# Step 2: Update dictionaries with missing keys
+	for d in list_of_dicts:
+		for key in all_keys:
+			d.setdefault(key, None)
+	return list_of_dicts

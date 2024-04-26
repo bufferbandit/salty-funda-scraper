@@ -1,15 +1,17 @@
 
 
 from funda_parse import parse_searchresults_page, parse_max_number_of_pages, parse_individual_page
-from utils import sel_session_request, flatten_ndlist
+from utils import sel_session_request, flatten_ndlist, standardize_dicts
 from urllib.parse import urlencode
 from mpire import WorkerPool
 import drivers
 
+pool = WorkerPool(5, use_dill=True)
 
 
 def req_and_parse_pages(page_urls):
-	pool = WorkerPool(5, use_dill=True)
+	global pool
+	# pool = WorkerPool(5, use_dill=True)
 	results = pool.map(
 		func=lambda url, selenium_cookies, selenium_useragent:
 			req_and_parse_individual_page(
@@ -20,8 +22,14 @@ def req_and_parse_pages(page_urls):
 		iterable_of_args=[(url, drivers.selenium_cookies, drivers.selenium_useragent) for url in page_urls],
 		progress_bar=True,
 		progress_bar_style="rich",
+		max_tasks_active=5
 	)
-	return results
+
+	# Note see comments in req_and_parse_searchpage
+	flattened_list = flatten_ndlist(results)
+	# Note see comments in req_and_parse_searchpage
+	standardized_dict = standardize_dicts(flattened_list)
+	return standardized_dict
 
 def req_and_parse_individual_page(page_url, _selenium_cookies=None, _selenium_useragent=None):
 	res = sel_session_request("get", page_url, _selenium_cookies, _selenium_useragent)
@@ -44,7 +52,15 @@ def req_and_parse_searchpage(search_url, max_page=None):
 	# Appart from the fact that this is not really a good solution because
 	# it does not address the rootcause, it might also become problematic
 	# in practice when the list becomes really big.
-	return flatten_ndlist(all_searchpages_results)
+	flattened_list = flatten_ndlist(all_searchpages_results)
+
+	# Yet another trick has to be done here. Apparently some dicts have keys that
+	# otehrs do not. To fix this, get all keys from all objects and when another
+	# object does not have those add them and add None to them
+	standardized_dict = standardize_dicts(flattened_list)
+
+	return standardized_dict
+
 
 
 
@@ -67,7 +83,8 @@ def _req_and_parse_searchpage(search_url, max_page=None, in_recursion=False, _se
 		max_page = max_page or parse_max_number_of_pages(body)
 		urls = [search_url + "&" + urlencode({"search_result": x}) for x in range(max_page)]
 
-		pool = WorkerPool(5, use_dill=True)
+		global pool
+		# pool = WorkerPool(5, use_dill=True)
 		results = pool.map(
 			func=lambda url, selenium_cookies, selenium_useragent: list(
 				_req_and_parse_searchpage(
@@ -80,6 +97,7 @@ def _req_and_parse_searchpage(search_url, max_page=None, in_recursion=False, _se
 			iterable_of_args=[(url, selenium_cookies, selenium_useragent) for url in urls],
 			progress_bar=True,
 			progress_bar_style="rich",
+			max_tasks_active=5
 		)
 		yield results
 

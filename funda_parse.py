@@ -29,7 +29,6 @@ def parse_individual_searchresult_card(body):
 	tree = html.fromstring(body)
 	soup = BeautifulSoup(body, "lxml")
 
-
 	street_name_house_number = tree.xpath('.//h2[@data-test-id="street-name-house-number"]')[0].text.strip()
 	postal_code_city = tree.xpath('.//div[@data-test-id="postal-code-city"]')[0].text.strip()
 	price = tree.xpath('.//p[@data-test-id="price-sale"]')[0].text.strip()
@@ -64,18 +63,18 @@ def parse_individual_searchresult_card(body):
 		percel_scurface = None
 		bedrooms = None
 		energy_label = None
-		#raise Exception(f"Unexpected number of tags found: {len(tags)}")
+	# raise Exception(f"Unexpected number of tags found: {len(tags)}")
 
 	# TODO: Adjust the names to match those in the non-shallow object
 	return {
-		"street_name_house_number":street_name_house_number,
-		"postal_code_city":postal_code_city,
-		"price":price,
-		"url":url,
-		"home_scurface":home_scurface,
-		"percel_scurface":percel_scurface,
-		"bedrooms":bedrooms,
-		"energy_label":energy_label
+		"street_name_house_number": street_name_house_number,
+		"postal_code_city": postal_code_city,
+		"price": price,
+		"url": url,
+		"home_scurface": home_scurface,
+		"percel_scurface": percel_scurface,
+		"bedrooms": bedrooms,
+		"energy_label": energy_label
 	}
 
 
@@ -84,8 +83,12 @@ def parse_individual_page(body):
 	soup = BeautifulSoup(body, "lxml")
 
 	## Get location data
-	map_config = json.loads(tree.xpath('//*[@data-object-map-config]')[0].text.strip())
-	lat, lng = map_config["lat"], map_config["lng"]
+	try:
+		map_config = json.loads(tree.xpath('//*[@data-object-map-config]')[0].text.strip())
+		lat, lng = map_config["lat"], map_config["lng"]
+	except IndexError:
+		lat = None
+		lng = None
 
 	## Get the features
 	listing_features_object = soup.find(class_="object-kenmerken")
