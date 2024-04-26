@@ -36,7 +36,7 @@ def parse_individual_searchresult_card(body):
 
 	street_name_house_number = tree.xpath('.//h2[@data-test-id="street-name-house-number"]')[0].text.strip()
 	postal_code_city = tree.xpath('.//div[@data-test-id="postal-code-city"]')[0].text.strip()
-	price_raw_object = tree.xpath('.//p[@data-test-id="price-sale"]')[0].text.strip().replace(".","")
+	price_raw_object = tree.xpath('.//p[@data-test-id="price-sale"]')[0].text.strip().replace(".", "")
 	price_valuta, price, price_type = price_raw_object.split(" ")
 	price = int(price.replace(".", ""))
 
@@ -123,16 +123,24 @@ def parse_individual_page(body, url=None):
 
 	features_dict = {}
 
-	# TODO: There is a bug here that some of the items do not get matched
-	# correctly and some values that belong to some items are placed at
-	# a next item
+	# TODO: The root cause of the bug is that
 	listing_features_dt_tags = listing_features_object.find_all("dt")
 	listing_features_dd_tags = listing_features_object.find_all("dd")
 
+	# TODO: There is a bug that listing_features_dt_tags and listing_features_dd_tags
+	# are not as long and are out of balance. A new mechanism has to be found to prevent this
+	# Gebruiksoppervlakten
+	# has
+	# 	Wonen
+	# 	and
+	#	Externe bergruimte
+	# in it nested
+
 	for dt_tag, dd_tag in zip(listing_features_dt_tags, listing_features_dd_tags):
 		key = dt_tag.get_text(strip=True)
-		first_span = dd_tag.find('span')
-		value = first_span.get_text(strip=True) if first_span else None
+		first_span = dd_tag.get_text(strip=True)
+		# value = first_span.get_text(strip=True) if first_span else None
+		value = first_span
 		features_dict[key] = value
 
 	# If contains VvE info, fix the formatting
@@ -147,12 +155,9 @@ def parse_individual_page(body, url=None):
 			vve_valuta, vve_price, *vve_period = vve_object_raw.split()
 			vve_period_fullstr = " ".join(vve_period)
 			vve_period_only = vve_period[-1]
-			vve_price_flt = float(vve_price.replace(",","."))
+			vve_price_flt = float(vve_price.replace(",", "."))
 	except:
 		pass
-
-
-
 
 	## Realtor data
 	try:
@@ -167,7 +172,7 @@ def parse_individual_page(body, url=None):
 	## Price
 	price_raw_object = soup.find(class_="object-header__price").text.strip()
 	price_valuta, price, price_type = price_raw_object.split(" ")
-	price = int(price.replace(".",""))
+	price = int(price.replace(".", ""))
 
 	## Title
 	title = soup.find(class_="object-header__title").text.strip()
@@ -200,8 +205,6 @@ def parse_individual_page(body, url=None):
 		# traceback.print_exception(e)
 		object_statistics = {}
 
-
-
 	page_data = {
 		"global_funda_id": global_funda_id,
 		"lat": lat,
@@ -214,7 +217,7 @@ def parse_individual_page(body, url=None):
 		"price_raw_object": price_raw_object,
 		"price_valuta": price_valuta,
 		"price": price,
-		"prijs": price, # bilingual shit
+		"prijs": price,  # bilingual shit
 		"price_type": price_type,
 		"title": title,
 		# "address_raw":address_raw,
