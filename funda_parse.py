@@ -130,14 +130,10 @@ def parse_individual_page(body, url=None):
 	# To prevent this, only include tags that have sub-tags
 	parent_filtered_listing_features_dd_tags = [dd_tag for dd_tag in listing_features_dd_tags if not (dd_tag.find_all("dt") + dd_tag.find_all("dd"))]
 
-	# TODO: There is a bug that listing_features_dt_tags and listing_features_dd_tags
-	# are not as long and are out of balance. A new mechanism has to be found to prevent this
-	# Gebruiksoppervlakten
-	# has
-	# 	Wonen
-	# 	and
-	#	Externe bergruimte
-	# in it nested
+	if len(parent_filtered_listing_features_dd_tags) != len(listing_features_dt_tags):
+		raise Exception(f"The number of dt's does not match the number of filtered dd's! " +
+						f"len(dt's)={len(listing_features_dt_tags)}, " +
+						f"len(filtered_dd's)={len(parent_filtered_listing_features_dd_tags)}")
 
 	for dt_tag, dd_tag in zip(listing_features_dt_tags, parent_filtered_listing_features_dd_tags):
 		key = dt_tag.get_text(strip=True)
