@@ -6,7 +6,10 @@ from urllib.parse import urlencode
 from mpire import WorkerPool
 import drivers
 
-pool = WorkerPool(5, use_dill=True)
+
+NJOBS = 5
+MAX_ACTIVE_TASKS = 5
+pool = WorkerPool(NJOBS, enable_insights=True, use_dill=True)
 
 
 def req_and_parse_pages(page_urls):
@@ -22,7 +25,7 @@ def req_and_parse_pages(page_urls):
 		iterable_of_args=[(url, drivers.selenium_cookies, drivers.selenium_useragent) for url in page_urls],
 		progress_bar=True,
 		progress_bar_style="rich",
-		max_tasks_active=5
+		max_tasks_active=MAX_ACTIVE_TASKS
 	)
 
 	# Note see comments in req_and_parse_searchpage
@@ -97,7 +100,7 @@ def _req_and_parse_searchpage(search_url, max_page=None, in_recursion=False, _se
 			iterable_of_args=[(url, selenium_cookies, selenium_useragent) for url in urls],
 			progress_bar=True,
 			progress_bar_style="rich",
-			max_tasks_active=5
+			max_tasks_active=MAX_ACTIVE_TASKS
 		)
 		yield results
 

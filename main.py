@@ -1,16 +1,17 @@
-import csv
-from pprint import pprint
-
+from utils import build_search_url, flatten_ndlist, convert_beta_url_to_old_url
+from funda_requests import req_and_parse_searchpage, req_and_parse_pages
 from helium import start_chrome, start_firefox, set_driver, click
 from HLISA.hlisa_action_chains import HLISA_ActionChains
-
-from funda_requests import req_and_parse_searchpage, req_and_parse_pages
-from selenium_functions import *
+from mpire.dashboard import start_dashboard
 from drivers import create_driver
+from selenium_functions import *
+from datetime import datetime
+from pprint import pprint
 import usersecrets
 import drivers
-from utils import build_search_url, flatten_ndlist, convert_beta_url_to_old_url
-from datetime import datetime
+import csv
+
+
 
 
 # auto add selenium
@@ -27,15 +28,12 @@ def main_flow(selenium_driver, hla):
 	selenium_driver.quit()
 
 	# Go to the search page
+	npages = 1
 	area = ["rotterdam"]
 	search_url = build_search_url("koop", area)
 
-	search_results = req_and_parse_searchpage(search_url, 1)
-	# pprint(search_results)
-
+	search_results = req_and_parse_searchpage(search_url, npages)
 	pages_data = req_and_parse_pages([convert_beta_url_to_old_url(sr["url"]) for sr in search_results])
-
-	# pprint(pages_data)
 
 
 
@@ -48,6 +46,8 @@ def main_flow(selenium_driver, hla):
 
 
 if __name__ == "__main__":
+	dashboard_details = start_dashboard(range(9000, 9100))
+	pprint(dashboard_details)
 
 	drivers.driver = create_driver()
 	drivers.hla = HLISA_ActionChains(drivers.driver, browser_resets_cursor_location=False)
