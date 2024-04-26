@@ -1,5 +1,6 @@
 import json
 import traceback
+from datetime import datetime
 from xml import etree
 
 import requests
@@ -125,6 +126,25 @@ def parse_individual_page(body, url=None):
 		value = first_span.get_text(strip=True) if first_span else None
 		features_dict[key] = value
 
+	# If contains VvE info, fix the formatting
+
+	vve_valuta = None
+	vve_period_fullstr = None
+	vve_period_only = None
+	vve_price_flt = None
+
+	try:
+		if vve_object_raw := features_dict.get("Bijdrage VvE"):
+			vve_valuta, vve_price, *vve_period = vve_object_raw.split()
+			vve_period_fullstr = "".join(vve_period)
+			vve_period_only = vve_period[-1]
+			vve_price_flt = float(vve_price.replace(",","."))
+	except:
+		pass
+
+
+
+
 	## Realtor data
 	try:
 		# TODO: Also get the realtor id
@@ -169,6 +189,7 @@ def parse_individual_page(body, url=None):
 		object_statistics = {}
 
 
+
 	page_data = {
 		"global_funda_id": global_funda_id,
 		"lat": lat,
@@ -191,6 +212,11 @@ def parse_individual_page(body, url=None):
 		"place": place,
 		"url": url,
 		"old_url": convert_beta_url_to_old_url(url),
-		"published_date": published_date
+		"published_date": published_date,
+		"requested_at": datetime.now().strftime("%d-%m-%Y-%H-%M-%S"),
+		"vve_period_fullstr": vve_period_fullstr,
+		"vve_valuta": vve_valuta,
+		"vve_period_only": vve_period_only,
+		"vve_price_flt": vve_price_flt,
 	}
 	return page_data
