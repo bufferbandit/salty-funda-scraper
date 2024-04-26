@@ -28,10 +28,8 @@ def sel_session_request(method, url, selenium_cookies, selenium_useragent=None, 
 	# Remove the headers from the arguments
 	kwargs.pop("headers", None)
 
-	# headers = {"":driver_useragent}
 
-	# return requests.get(*args, **kwargs, cookies=requests_cookies)
-	return requests.request(method=method,url=url,headers=headers, *args, **kwargs)
+	return requests.request(method=method,url=url,headers=headers,cookies=requests_cookies, *args, **kwargs)
 
 
 

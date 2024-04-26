@@ -118,9 +118,10 @@ def parse_individual_page(body, url=None):
 		features_dict[key] = value
 
 	## Realtor data
-	# TODO: Realtor is broken for now. Sometimes it works, sometimes it doesn't. Reenable in the future
-	# realtor_data = soup.find_all("app-contact-broker-modal")[0].attrs
-	realtor_data = {}
+	try:
+		realtor_data = soup.find_all("app-contact-broker-modal")[0].attrs
+	except:
+		realtor_data = {}
 
 	## Price
 	price_raw_object = soup.find(class_="object-header__price").text.strip()
