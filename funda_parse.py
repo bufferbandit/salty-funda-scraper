@@ -101,7 +101,10 @@ def parse_individual_page(body, url=None):
 	soup = BeautifulSoup(body, "lxml")
 
 	# Get the global funda id
-	global_funda_id = tree.xpath('//@data-global-id')[0]
+	try:
+		global_funda_id = tree.xpath('//@data-global-id')[0]
+	except IndexError:
+		global_funda_id = None
 	published_date = tree.xpath('//@published-date')[0]
 
 	## Get location data
@@ -177,13 +180,16 @@ def parse_individual_page(body, url=None):
 	# TODO: Maybe think a bit better about where to do the fetching.
 	#  This kinda is a parsing-only thing here and it's not architectually sound
 	try:
-		object_statistics_url = "https://marketinsights.funda.io/v1/objectinsights/" + global_funda_id
-		# res = sel_session_request("get", object_statistics_url, _selenium_cookies, _selenium_useragent)
-		res = requests.get(object_statistics_url)
-		if res.status_code == 204:
-			object_statistics = {}
+		if global_funda_id:
+			object_statistics_url = "https://marketinsights.funda.io/v1/objectinsights/" + global_funda_id
+			# res = sel_session_request("get", object_statistics_url, _selenium_cookies, _selenium_useragent)
+			res = requests.get(object_statistics_url)
+			if res.status_code == 204:
+				object_statistics = {}
+			else:
+				object_statistics = res.json()
 		else:
-			object_statistics = res.json()
+			object_statistics = {}
 	except Exception as e:
 		# traceback.print_exception(e)
 		object_statistics = {}
