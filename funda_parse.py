@@ -105,7 +105,10 @@ def parse_individual_page(body, url=None):
 		global_funda_id = tree.xpath('//@data-global-id')[0]
 	except IndexError:
 		global_funda_id = None
-	published_date = tree.xpath('//@published-date')[0]
+	try:
+		published_date = tree.xpath('//@published-date')[0]
+	except IndexError:
+		published_date = None
 
 	## Get location data
 	try:

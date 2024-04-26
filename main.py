@@ -56,13 +56,13 @@ if __name__ == "__main__":
 	dashboard_details = start_dashboard(range(9000, 9100))
 	pprint(dashboard_details)
 
-	webbrowser.open(f"http://{dashboard_details['[manager_host']}:{dashboard_details['dashboard_port_nr']}")
+	webbrowser.open(f"http://{dashboard_details['manager_host']}:{dashboard_details['dashboard_port_nr']}")
 
-	# drivers.driver = create_driver()
-	# drivers.hla = HLISA_ActionChains(drivers.driver, browser_resets_cursor_location=False)
-	# set_driver(drivers.driver)
+	drivers.driver = create_driver()
+	drivers.hla = HLISA_ActionChains(drivers.driver, browser_resets_cursor_location=False)
+	set_driver(drivers.driver)
 
 
 	# Browsing
-	main_flow() #drivers.driver, drivers.hla)
+	main_flow(drivers.driver, drivers.hla)
 	pass
