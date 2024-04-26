@@ -26,6 +26,6 @@ def get_remote_driver(executor_url, session_id):
 hla = None
 
 driver = None
-selenium_cookies = None
-selenium_useragent = None
+selenium_cookies = []
+selenium_useragent = ""
 
