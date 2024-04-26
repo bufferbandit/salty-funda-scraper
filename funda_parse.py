@@ -139,7 +139,7 @@ def parse_individual_page(body, url=None):
 	try:
 		if vve_object_raw := features_dict.get("Bijdrage VvE"):
 			vve_valuta, vve_price, *vve_period = vve_object_raw.split()
-			vve_period_fullstr = "".join(vve_period)
+			vve_period_fullstr = " ".join(vve_period)
 			vve_period_only = vve_period[-1]
 			vve_price_flt = float(vve_price.replace(",","."))
 	except:
