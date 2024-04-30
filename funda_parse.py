@@ -124,7 +124,7 @@ def parse_individual_page(body, url=None):
 		lng = None
 
 	## Get the features
-	listing_features_object = soup.find(class_="object-kenmerken")
+	listing_features_object = soup.find(class_="object-kenmerken") or soup.find(class_="md:mt-7")
 
 	features_dict = {}
 
@@ -174,7 +174,7 @@ def parse_individual_page(body, url=None):
 		realtor_data = {}
 
 	## Price
-	price_raw_object = soup.find(class_="object-header__price").text.strip()
+	price_raw_object = (soup.find(class_="object-header__price") or soup.find(class_="flex gap-2 font-bold")).text.strip()
 	price_valuta, price, price_type, *_ = price_raw_object.split(" ")
 	try:
 		price = int(price.replace(".", ""))
@@ -182,10 +182,10 @@ def parse_individual_page(body, url=None):
 		pass
 
 	## Title
-	title = soup.find(class_="object-header__title").text.strip()
+	title = (soup.find(class_="object-header__title") or soup.find(class_="block text-2xl font-bold md:text-3xl lg:text-4xl")).text.strip()
 
 	## Address data
-	address_raw = soup.find(class_="object-header__subtitle").text.strip()
+	address_raw = (soup.find(class_="object-header__subtitle") or soup.find(class_="block text-2xl font-bold md:text-3xl lg:text-4xl")).text.strip()
 	postal_code_full = address_raw.split("\n")[0].strip()
 	try:
 		neighbourhood = address_raw.split("\n")[1].strip()
