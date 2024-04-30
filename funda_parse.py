@@ -174,7 +174,12 @@ def parse_individual_page(body, url=None):
 		realtor_data = {}
 
 	## Price
-	price_raw_object = (soup.find(class_="object-header__price") or soup.find(class_="flex gap-2 font-bold")).text.strip()
+	price_raw_object = (
+			soup.find(class_="object-header__price") or
+			soup.find(class_="flex gap-2 font-bold") or
+			soup.find(class_="flex flex-col text-xl")
+
+	).text.strip()
 	price_valuta, price, price_type, *_ = price_raw_object.split(" ")
 	try:
 		price = int(price.replace(".", ""))
