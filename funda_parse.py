@@ -36,7 +36,8 @@ def parse_individual_searchresult_card(body):
 
 	street_name_house_number = tree.xpath('.//h2[@data-test-id="street-name-house-number"]')[0].text.strip()
 	postal_code_city = tree.xpath('.//div[@data-test-id="postal-code-city"]')[0].text.strip()
-	price_raw_object = tree.xpath('.//p[@data-test-id="price-sale"]')[0].text.strip().replace(".", "")
+	price_raw_object = tree.xpath('.//p[@data-test-id="price-sale"]') or tree.xpath('.//p[@data-test-id="price-rent"]')
+	price_raw_object = price_raw_object[0].text.strip().replace(".", "")
 	price_valuta, price, price_type, *_ = price_raw_object.split(" ")
 
 	try:
@@ -175,7 +176,10 @@ def parse_individual_page(body, url=None):
 	## Price
 	price_raw_object = soup.find(class_="object-header__price").text.strip()
 	price_valuta, price, price_type, *_ = price_raw_object.split(" ")
-	price = int(price.replace(".", ""))
+	try:
+		price = int(price.replace(".", ""))
+	except ValueError as ve:
+		pass
 
 	## Title
 	title = soup.find(class_="object-header__title").text.strip()
@@ -183,7 +187,10 @@ def parse_individual_page(body, url=None):
 	## Address data
 	address_raw = soup.find(class_="object-header__subtitle").text.strip()
 	postal_code_full = address_raw.split("\n")[0].strip()
-	neighbourhood = address_raw.split("\n")[1].strip()
+	try:
+		neighbourhood = address_raw.split("\n")[1].strip()
+	except:
+		neighbourhood = None
 
 	postal_code = " ".join(postal_code_full.split()[:2])
 	place = " ".join(postal_code_full.split()[2:])
