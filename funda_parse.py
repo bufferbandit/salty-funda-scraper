@@ -126,6 +126,10 @@ def parse_individual_page(body, url=None):
 	## Get the features
 	listing_features_object = soup.find(class_="object-kenmerken") or soup.find(class_="md:mt-7")
 
+	if not listing_features_object:
+		print("[!] No table could be found!")
+		return {}
+
 	features_dict = {}
 
 	listing_features_dt_tags = listing_features_object.find_all("dt")
@@ -177,7 +181,8 @@ def parse_individual_page(body, url=None):
 	price_raw_object = (
 			soup.find(class_="object-header__price") or
 			soup.find(class_="flex gap-2 font-bold") or
-			soup.find(class_="flex flex-col text-xl")
+			soup.find(class_="flex flex-col text-xl") or
+			soup.find(class_="flex flex-col pt-3 text-xl font-bold")
 
 	).text.strip()
 	price_valuta, price, price_type, *_ = price_raw_object.split(" ")
@@ -187,10 +192,16 @@ def parse_individual_page(body, url=None):
 		pass
 
 	## Title
-	title = (soup.find(class_="object-header__title") or soup.find(class_="block text-2xl font-bold md:text-3xl lg:text-4xl")).text.strip()
+	title = (
+			soup.find(class_="object-header__title") or
+			soup.find(class_="block text-2xl font-bold md:text-3xl lg:text-4xl")
+	).text.strip()
 
 	## Address data
-	address_raw = (soup.find(class_="object-header__subtitle") or soup.find(class_="block text-2xl font-bold md:text-3xl lg:text-4xl")).text.strip()
+	address_raw = (
+			soup.find(class_="object-header__subtitle") or
+			soup.find(class_="block text-2xl font-bold md:text-3xl lg:text-4xl")
+	).text.strip()
 	postal_code_full = address_raw.split("\n")[0].strip()
 	try:
 		neighbourhood = address_raw.split("\n")[1].strip()
