@@ -127,7 +127,7 @@ def parse_individual_page(body, url=None):
 	listing_features_object = soup.find(class_="object-kenmerken") or soup.find(class_="md:mt-7")
 
 	if not listing_features_object:
-		print("[!] No table could be found!")
+		print(f"[!] No table could be found at {url}")
 		return {}
 
 	features_dict = {}
