@@ -133,6 +133,7 @@ def parse_individual_page(body, url=None):
 
 	if not listing_features_object:
 		print(f"[!] No table could be found at {url}")
+		# TODO: Throw exception instead
 		return {}
 
 	features_dict = {}

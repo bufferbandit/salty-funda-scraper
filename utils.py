@@ -135,7 +135,7 @@ def convert_beta_url_to_old_url(url):
 		new_url = "-".join(dashed_parts)
 		new_url = new_url.replace("<DASH>","-")
 		return new_url
-	except ZeroDivisionError as e:
+	except Exception as e:
 		# traceback.print_exception(e)
 		return None
 
