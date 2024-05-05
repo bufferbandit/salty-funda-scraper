@@ -38,14 +38,14 @@ def parse_individual_searchresult_card(body):
 	street_name_house_number = tree.xpath('.//h2[@data-test-id="street-name-house-number"]')[0].text.strip()
 	postal_code_city = tree.xpath('.//div[@data-test-id="postal-code-city"]')[0].text.strip()
 	price_raw_object = tree.xpath('.//p[@data-test-id="price-sale"]') or tree.xpath('.//p[@data-test-id="price-rent"]')
+	price_raw_object = price_raw_object[0].text.strip().replace(".", "")
+
 	if price_raw_object == "Prijs op aanvraag" or price_raw_object == "Huurprijs op aanvraag":
 		price_valuta = None
 		price = None
 		price_type = None
 	else:
-		price_raw_object = price_raw_object[0].text.strip().replace(".", "")
 		price_valuta, price, price_type, *_ = price_raw_object.split(" ")
-
 		try:
 			price = int(price.replace(".", ""))
 		except ValueError as ve:
