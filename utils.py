@@ -123,19 +123,22 @@ def flatten_ndlist(arg):
 	return [x for sub in arg for x in flatten_ndlist(sub)]
 
 
-# TODO: Fix bug in this function. Some urls dont get formatted correctly
 def convert_beta_url_to_old_url(url):
 	try:
 		url = url.replace("/detail", "")
 		id = url.split("/")[-2]
+		place_name = url.split("/")[-4]
+		url = url.replace(place_name,place_name.replace("-","<DASH>"))
 		url = url.replace(id + "/", "")
 		dashed_parts = url.split("-")
 		dashed_parts.insert(1, id)
 		new_url = "-".join(dashed_parts)
+		new_url = new_url.replace("<DASH>","-")
 		return new_url
-	except Exception as e:
+	except ZeroDivisionError as e:
 		# traceback.print_exception(e)
 		return None
+
 
 
 def standardize_dicts(list_of_dicts):
