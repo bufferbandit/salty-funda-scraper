@@ -41,7 +41,7 @@ def main_flow(selenium_driver=None, hla=None):
 
 	# Go to the search page
 	search_results = req_and_parse_searchpage(config.search_url, config.npages)
-	pages_data = req_and_parse_pages([convert_beta_url_to_old_url(sr["url"]) for sr in search_results])
+	pages_data = req_and_parse_pages([sr["url"] for sr in search_results])
 
 	os.makedirs("out", exist_ok=True)
 	with open("out/funda_data-" + datetime.now().strftime("%d-%m-%Y-%H-%M-%S") + ".csv", mode="w", newline="") as file:
@@ -54,8 +54,6 @@ def main_flow(selenium_driver=None, hla=None):
 
 if __name__ == "__main__":
 	dashboard_details = start_dashboard(range(9000, 9100))
-	pprint(dashboard_details)
-
 	url_str = f"http://{dashboard_details['manager_host']}:{dashboard_details['dashboard_port_nr']}"
 	print(f"[+] Opening url: {url_str}")
 	webbrowser.open(url_str)
