@@ -40,8 +40,7 @@ def parse_individual_searchresult_card(body):
 	price_raw_object = tree.xpath('.//p[@data-test-id="price-sale"]') or tree.xpath('.//p[@data-test-id="price-rent"]')
 	price_raw_object = price_raw_object[0].text.strip().replace(".", "")
 
-	#if price_raw_object == "Prijs op aanvraag" or price_raw_object == "Huurprijs op aanvraag":
-	if "aanvraag" in price_raw_object:
+	if price_raw_object == "Prijs op aanvraag" or price_raw_object == "Huurprijs op aanvraag":
 		price_valuta = None
 		price = None
 		price_type = None
@@ -192,11 +191,17 @@ def parse_individual_page(body, url=None):
 			soup.find(class_="flex flex-col pt-3 text-xl font-bold")
 
 	).text.strip()
-	price_valuta, price, price_type, *_ = price_raw_object.split(" ")
-	try:
-		price = int(price.replace(".", ""))
-	except ValueError as ve:
-		pass
+
+	if price_raw_object == "Prijs op aanvraag" or price_raw_object == "Huurprijs op aanvraag":
+		price_valuta = None
+		price = None
+		price_type = None
+	else:
+		price_valuta, price, price_type, *_ = price_raw_object.split(" ")
+		try:
+			price = int(price.replace(".", ""))
+		except ValueError as ve:
+			pass
 
 	## Title
 	title = (

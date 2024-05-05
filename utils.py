@@ -123,6 +123,7 @@ def flatten_ndlist(arg):
 	return [x for sub in arg for x in flatten_ndlist(sub)]
 
 
+# TODO: Fix bug in this function. Some urls dont get formatted correctly
 def convert_beta_url_to_old_url(url):
 	try:
 		url = url.replace("/detail", "")
