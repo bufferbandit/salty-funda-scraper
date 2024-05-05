@@ -4,3 +4,4 @@ selenium==4.19.0
 requests
 multiprocess
 mpire
+beautifulsoup4
