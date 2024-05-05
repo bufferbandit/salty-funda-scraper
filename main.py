@@ -56,7 +56,9 @@ if __name__ == "__main__":
 	dashboard_details = start_dashboard(range(9000, 9100))
 	pprint(dashboard_details)
 
-	webbrowser.open(f"http://{dashboard_details['manager_host']}:{dashboard_details['dashboard_port_nr']}")
+	url_str = f"http://{dashboard_details['manager_host']}:{dashboard_details['dashboard_port_nr']}"
+	print(f"[+] Opening url: {url_str}")
+	webbrowser.open(url_str)
 
 	drivers.driver = create_driver()
 	drivers.hla = HLISA_ActionChains(drivers.driver, browser_resets_cursor_location=False)

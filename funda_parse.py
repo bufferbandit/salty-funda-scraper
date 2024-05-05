@@ -15,6 +15,7 @@ def parse_max_number_of_pages(body):
 	pagination_container = soup.find(class_="pagination")
 	results_items_elements = pagination_container.findAll("li")
 	last_page_number = int(results_items_elements[3].text)
+	print(f"[+] {last_page_number} pages found")
 	# pages_container = driver.find_element(By.CLASS_NAME, "pagination")
 	# results_items_elements = pages_container \
 	# 	.find_elements(By.TAG_NAME, "li")

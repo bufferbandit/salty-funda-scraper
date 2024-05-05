@@ -12,11 +12,11 @@ def generate_chrome_options():
 
 
 
-npages = 20
-search_url = build_search_url("koop", selected_area=["rotterdam"])
+npages = None
+search_url = build_search_url("koop", selected_area=["rotterdam"], availability=["available"])
 
 
-NJOBS = 5
-MAX_ACTIVE_TASKS = 5
+NJOBS = 20
+MAX_ACTIVE_TASKS = 8
 
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.3"

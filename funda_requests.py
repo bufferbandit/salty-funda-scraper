@@ -24,7 +24,8 @@ def req_and_parse_pages(page_urls):
 		iterable_of_args=[(url, drivers.selenium_cookies, drivers.selenium_useragent) for url in page_urls],
 		progress_bar=True,
 		progress_bar_style="rich",
-		max_tasks_active=config.MAX_ACTIVE_TASKS
+		max_tasks_active=config.MAX_ACTIVE_TASKS,
+		task_timeout=150
 	)
 
 	# Note see comments in req_and_parse_searchpage
@@ -34,7 +35,7 @@ def req_and_parse_pages(page_urls):
 	return standardized_dict
 
 def req_and_parse_individual_page(page_url, _selenium_cookies=None, _selenium_useragent=None):
-	res = sel_session_request("get", page_url, _selenium_cookies, _selenium_useragent)
+	res = sel_session_request("get", page_url, _selenium_cookies, _selenium_useragent, )
 	return parse_individual_page(res.text, page_url)
 
 
@@ -99,7 +100,8 @@ def _req_and_parse_searchpage(search_url, max_page=None, in_recursion=False, _se
 			iterable_of_args=[(url, selenium_cookies, selenium_useragent) for url in urls],
 			progress_bar=True,
 			progress_bar_style="rich",
-			max_tasks_active=config.MAX_ACTIVE_TASKS
+			max_tasks_active=config.MAX_ACTIVE_TASKS,
+			task_timeout=150
 		)
 		yield results
 
