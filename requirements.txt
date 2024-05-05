@@ -4,4 +4,8 @@ selenium==4.19.0
 requests
 multiprocess
 mpire
+mpire[dashboard]
 beautifulsoup4
+lxml
+undetected_chromedriver
+rich
