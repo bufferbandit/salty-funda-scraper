@@ -39,7 +39,9 @@ def parse_individual_searchresult_card(body):
 	price_raw_object = tree.xpath('.//p[@data-test-id="price-sale"]') or tree.xpath('.//p[@data-test-id="price-rent"]')
 	price_raw_object = price_raw_object[0].text.strip().replace(".", "")
 
-	if price_raw_object == "Prijs op aanvraag" or price_raw_object == "Huurprijs op aanvraag":
+	if price_raw_object == "Prijs op aanvraag" \
+			or price_raw_object == "Huurprijs op aanvraag"\
+			or price_raw_object == "Verkoop bij inschrijving":
 		price_valuta = None
 		price = None
 		price_type = None
@@ -192,7 +194,9 @@ def parse_individual_page(body, url=None):
 
 	).text.strip()
 
-	if price_raw_object == "Prijs op aanvraag" or price_raw_object == "Huurprijs op aanvraag":
+	if price_raw_object == "Prijs op aanvraag" \
+			or price_raw_object == "Huurprijs op aanvraag"\
+			or price_raw_object == "Verkoop bij inschrijving":
 		price_valuta = None
 		price = None
 		price_type = None
